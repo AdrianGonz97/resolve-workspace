@@ -1,0 +1,45 @@
+{
+	"name": "resolve-workspace",
+	"version": "0.0.0",
+	"description": "A workspace resolver for different package managers and monorepo tools.",
+	"type": "module",
+	"author": "CokaKoala",
+	"keywords": [
+		"workspaces",
+		"monorepo",
+		"resolve"
+	],
+	"license": "MIT",
+	"packageManager": "pnpm@10.9.0",
+	"scripts": {
+		"dev": "tsdown --watch",
+		"build": "tsdown",
+		"check": "tsc --noEmit",
+		"format": "prettier --write .",
+		"lint": "prettier --check .",
+		"test": "vitest",
+		"changeset:publish": "changeset publish"
+	},
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		}
+	},
+	"files": [
+		"dist"
+	],
+	"devDependencies": {
+		"@changesets/cli": "^2.29.5",
+		"@svitejs/changesets-changelog-github-compact": "^1.2.0",
+		"@types/node": "^20.19.4",
+		"prettier": "^3.6.2",
+		"tsdown": "^0.12.9",
+		"typescript": "^5.8.3",
+		"vitest": "^3.2.4"
+	},
+	"dependencies": {
+		"tinyglobby": "^0.2.14",
+		"yaml": "^2.8.0"
+	}
+}
