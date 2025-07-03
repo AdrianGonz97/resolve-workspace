@@ -1,0 +1,4 @@
+packages:
+  - packages/*
+  - direct-ref-pkg
+  - "!packages/ignored-workspace-pkg"

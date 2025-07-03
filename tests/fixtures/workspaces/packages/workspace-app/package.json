@@ -1,0 +1,11 @@
+{
+	"name": "@tests/project-workspace-app",
+	"version": "0.0.1",
+	"private": true,
+	"type": "module",
+	"devDependencies": {
+		"@tests/workspace-pkg-1": "file:../workspace-pkg-1",
+		"@tests/workspace-pkg-2": "file:../workspace-pkg-2",
+		"@tests/direct-ref-pkg": "file:../../direct-ref-pkg"
+	}
+}

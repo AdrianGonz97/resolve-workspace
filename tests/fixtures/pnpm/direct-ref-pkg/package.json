@@ -1,0 +1,11 @@
+{
+	"name": "@tests/direct-ref-pkg",
+	"version": "0.0.1",
+	"private": true,
+	"type": "module",
+	"exports": {
+		".": {
+			"import": "./index.js"
+		}
+	}
+}

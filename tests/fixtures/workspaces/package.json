@@ -1,0 +1,11 @@
+{
+	"name": "@tests/workspace-rest",
+	"version": "0.0.1",
+	"private": true,
+	"type": "module",
+	"workspaces": [
+		"packages/*",
+		"direct-ref-pkg",
+		"!packages/ignored-workspace-pkg"
+	]
+}
