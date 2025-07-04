@@ -1,6 +1,6 @@
 {
 	"name": "resolve-workspace",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"description": "A workspace resolver for different package managers and monorepo tools.",
 	"type": "module",
 	"author": "CokaKoala",

@@ -1,5 +1,11 @@
 # resolve-workspace
 
+## 0.0.2
+
+### Patch Changes
+
+- feat: support workspaces defined in `deno.json` ([#2](https://github.com/AdrianGonz97/resolve-workspace/pull/2))
+
 ## 0.0.1
 
 ### Patch Changes
