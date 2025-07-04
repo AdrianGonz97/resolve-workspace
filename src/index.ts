@@ -1,21 +1,22 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import process from 'node:process';
 import * as yaml from 'yaml';
 import { globSync } from 'tinyglobby';
 
 interface Workspace {
 	/** The absolute path to the workspace root. */
-	root: string; // point to the package.json or the package's directory? 🤔
-	/** An array of absolute paths for a workspace's packages. */
+	root: string;
+	/** An array of absolute paths to the workspace's packages. */
 	packages: string[];
 }
 
 /**
- * Resolves workspace details.
+ * Resolves the details of the current workspace.
  *
- * @param cwd The starting point.
+ * @param cwd The current working directory of the operation.
  *
- * @returns the details of the workspace, `undefined` if `cwd` is not in a workspace.
+ * @returns The details of the workspace, `undefined` if {@link cwd} is not in a workspace.
  */
 export function resolve(cwd: string): Workspace | undefined {
 	cwd = path.resolve(cwd); // ensure it's an absolute path.
@@ -61,11 +62,16 @@ function findWorkspace(pkgPath: string, pkg: any): RawWorkspace | undefined {
 const trailingSlashRegex = /(\\|\/)$/;
 
 function resolveWorkspacePackages(workspace: RawWorkspace) {
-	const packagePaths = globSync(workspace.globs, {
+	let packagePaths = globSync(workspace.globs, {
 		cwd: workspace.root,
 		onlyDirectories: true,
 		absolute: true,
 	});
+
+	// use window's path separator instead
+	if (process.platform === 'win32') {
+		packagePaths = packagePaths.map((p) => p.split('/').join(path.sep));
+	}
 
 	const packages = [];
 
