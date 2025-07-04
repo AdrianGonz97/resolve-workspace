@@ -50,7 +50,6 @@ Returns `{ root: string; packages: string[] }` or `undefined` (if `cwd` is not w
 
 - `root` - the absolute path to the root of the workspace
 - `packages` - the absolute paths to each workspace package
--
 
 ### `findWorkspaceRoot(cwd)`
 
