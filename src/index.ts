@@ -4,7 +4,7 @@ import process from 'node:process';
 import * as yaml from 'yaml';
 import { globSync } from 'tinyglobby';
 
-interface Workspace {
+export interface Workspace {
 	/** The absolute path to the workspace root. */
 	root: string;
 	/** An array of absolute paths to the workspace's packages. */
