@@ -8,7 +8,7 @@ const fixtureRoot = url
 	.fileURLToPath(new URL('./fixtures', import.meta.url))
 	.replace(trailingSlashRegex, '');
 
-describe.for(['pnpm', 'workspaces'])('resolve', (fixture) => {
+describe.for(['pnpm', 'workspaces', 'deno'])('resolve (%s)', (fixture) => {
 	const root = path.resolve(fixtureRoot, fixture);
 	const workspacePkg = (name: string) => path.resolve(root, 'packages', name);
 
