@@ -1,7 +1,7 @@
 import url from 'node:url';
 import path from 'node:path';
 import { it, describe, expect } from 'vitest';
-import { resolve } from '../src/index.ts';
+import { resolve, findWorkspaceRoot } from '../src/index.ts';
 
 const trailingSlashRegex = /(\\|\/)$/;
 const fixtureRoot = url
@@ -36,6 +36,34 @@ describe.for(['pnpm', 'workspaces', 'deno'])('resolve (%s)', (fixture) => {
 
 	it('is unresolvable outside of the workspace', () => {
 		const result = resolve(path.resolve(root, '..'));
+		expect(result).toBeUndefined();
+	});
+});
+
+describe.for(['pnpm', 'workspaces', 'deno'])('findWorkspaceRoot (%s)', (fixture) => {
+	const root = path.resolve(fixtureRoot, fixture);
+
+	const globs = ['packages/*', 'direct-ref-pkg', '!packages/ignored-workspace-pkg'];
+
+	it('can be found from the workspace root', () => {
+		const result = findWorkspaceRoot(root);
+		expect(result).toEqual({ path: root, globs });
+	});
+
+	it('can be found from a child package', () => {
+		const result = findWorkspaceRoot(path.resolve(root, 'packages', 'workspace-app'));
+		expect(result).toEqual({ path: root, globs });
+	});
+
+	it('can be found when pointing to a file', () => {
+		const result = findWorkspaceRoot(
+			path.resolve(root, 'packages', 'workspace-app', 'package.json')
+		);
+		expect(result).toEqual({ path: root, globs });
+	});
+
+	it('cannot be found outside of the workspace', () => {
+		const result = findWorkspaceRoot(path.resolve(root, '..'));
 		expect(result).toBeUndefined();
 	});
 });
