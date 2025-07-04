@@ -1,5 +1,11 @@
 # resolve-workspace
 
+## 0.0.3
+
+### Patch Changes
+
+- feat: add `findWorkspaceRoot` ([#4](https://github.com/AdrianGonz97/resolve-workspace/pull/4))
+
 ## 0.0.2
 
 ### Patch Changes
