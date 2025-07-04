@@ -2,6 +2,12 @@
 
 A resolver for workspaces. Supports detecting workspaces for `npm`, `pnpm`, `yarn`, `deno`, and `bun`.
 
+## Installation
+
+```sh
+npm install resolve-workspace
+```
+
 ## Usage
 
 Given the following directory structure:
