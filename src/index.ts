@@ -3,6 +3,9 @@ import path from 'node:path';
 import process from 'node:process';
 import * as yaml from 'yaml';
 import { globSync } from 'tinyglobby';
+import { find, readJSON } from './utils.ts';
+
+const PKG_NAMES = ['package.json', 'deno.json'];
 
 export interface Workspace {
 	/** The absolute path to the workspace root. */
@@ -11,65 +14,76 @@ export interface Workspace {
 	packages: string[];
 }
 
-const PKG_NAMES = ['package.json', 'deno.json'];
-
 /**
  * Resolves the details of the current workspace.
  *
  * @param cwd The current working directory of the operation.
  *
- * @returns The details of the workspace, `undefined` if {@link cwd} is not in a workspace.
+ * @returns The details of the workspace, `undefined` if {@link cwd} is not within a workspace.
  */
 export function resolve(cwd: string): Workspace | undefined {
-	cwd = path.resolve(cwd); // ensure it's an absolute path.
+	// ensure it's an absolute path
+	cwd = path.resolve(cwd);
 
-	// find workspace root
-	let pkgPath = find(cwd, PKG_NAMES);
-	if (!pkgPath) return;
+	let workspaceRoot = findWorkspaceRoot(cwd);
+	if (!workspaceRoot) return undefined;
 
-	let workspace: RawWorkspace | undefined;
-	while (workspace === undefined && pkgPath !== undefined) {
-		const pkg = readJSON(pkgPath);
-		workspace = findWorkspace(pkgPath, pkg);
-		if (workspace === undefined) {
-			pkgPath = find(path.resolve(pkgPath, '..', '..'), PKG_NAMES);
-		}
-	}
+	const packages = resolveWorkspacePackages(workspaceRoot);
 
-	if (!workspace || !pkgPath) return;
-
-	const packages = resolveWorkspacePackages(workspace);
-
-	return { root: workspace.root, packages };
+	return { root: workspaceRoot.path, packages };
 }
 
-interface RawWorkspace {
-	root: string;
+export interface WorkspaceRoot {
+	/** The absolute path to the workspace root. */
+	path: string;
+	/** An array of glob patterns used to determine the packages of the workspace. */
 	globs: string[];
 }
 
-function findWorkspace(pkgPath: string, pkg: any): RawWorkspace | undefined {
+/**
+ * Finds the root of a workspace.
+ *
+ * @param cwd The current working directory of the operation.
+ *
+ * @returns The details of a workspace's root, `undefined` if {@link cwd} is not within a workspace.
+ */
+export function findWorkspaceRoot(cwd: string): WorkspaceRoot | undefined {
+	// ensure it's an absolute path
+	cwd = path.resolve(cwd);
+
+	let pkgPath = find(cwd, PKG_NAMES);
+	// no package root could be found in any parent directory
+	if (!pkgPath) return undefined;
+
+	const pkg = readJSON(pkgPath);
+	const root = resolveWorkspaceRoot(pkgPath, pkg);
+	if (root) return root;
+
+	return findWorkspaceRoot(path.resolve(pkgPath, '../..'));
+}
+
+function resolveWorkspaceRoot(pkgPath: string, pkg: any): WorkspaceRoot | undefined {
 	const root = path.resolve(pkgPath, '..');
 
 	// `package.json` defines workspaces in `pkg.workspaces` (covers npm, yarn, bun, and deno)
-	if (Array.isArray(pkg.workspaces)) return { root, globs: pkg.workspaces };
+	if (Array.isArray(pkg.workspaces)) return { path: root, globs: pkg.workspaces };
 
 	// `deno.json` defines workspaces in `pkg.workspace`
-	if (Array.isArray(pkg.workspace)) return { root, globs: pkg.workspace };
+	if (Array.isArray(pkg.workspace)) return { path: root, globs: pkg.workspace };
 
 	const pnpmWorkspacePath = path.resolve(pkgPath, '..', 'pnpm-workspace.yaml');
 	if (fs.existsSync(pnpmWorkspacePath)) {
 		const pnpmYaml = fs.readFileSync(pnpmWorkspacePath, 'utf8');
 		const { packages = [] } = yaml.parse(pnpmYaml);
-		return { root, globs: packages };
+		return { path: root, globs: packages };
 	}
 }
 
 const TRAILING_SLASH_REGEX = /(\\|\/)$/;
 
-function resolveWorkspacePackages(workspace: RawWorkspace) {
+function resolveWorkspacePackages(workspace: WorkspaceRoot) {
 	let packagePaths = globSync(workspace.globs, {
-		cwd: workspace.root,
+		cwd: workspace.path,
 		onlyDirectories: true,
 		absolute: true,
 	});
@@ -90,26 +104,4 @@ function resolveWorkspacePackages(workspace: RawWorkspace) {
 	}
 
 	return packages;
-}
-
-function find(cwd: string, filenames: string[]): string | undefined {
-	for (const filename of filenames) {
-		const filepath = path.resolve(cwd, filename);
-		if (fs.existsSync(filepath)) {
-			return filepath;
-		}
-	}
-
-	const next = path.resolve(cwd, '..');
-	// reached the root
-	if (cwd === next) {
-		return undefined;
-	}
-
-	return find(next, filenames);
-}
-
-function readJSON(path: string) {
-	const json = fs.readFileSync(path, 'utf8');
-	return JSON.parse(json);
 }
