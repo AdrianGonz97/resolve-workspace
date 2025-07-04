@@ -33,12 +33,13 @@ with the following `package.json`:
 we can resolve the details of the workspace:
 
 ```js
-import { resolve } from 'resolve-workspace';
+import { resolve, findWorkspaceRoot } from 'resolve-workspace';
 
 const workspace = resolve('workspace/path/to/some/child/directory');
 // => { root: "/workspace", packages: ["/workspace/app", "/workspace/pkg-1", "/workspace/pkg-2"] }
 
-const workspace = resolve('path/outside/of/workspace'); // => undefined
+const workspaceRoot = findWorkspaceRoot('workspace/path/to/some/child/directory');
+// => { path: "/workspace", globs: ["app", "packages/*", "!packages/ignored-pkg"] }
 ```
 
 ## API Reference
