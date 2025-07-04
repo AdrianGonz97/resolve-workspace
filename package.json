@@ -10,7 +10,7 @@
 		"resolve"
 	],
 	"license": "MIT",
-	"packageManager": "pnpm@10.9.0",
+	"packageManager": "pnpm@10.12.4",
 	"scripts": {
 		"dev": "tsdown --watch",
 		"build": "tsdown",
