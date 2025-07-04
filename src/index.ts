@@ -4,12 +4,14 @@ import process from 'node:process';
 import * as yaml from 'yaml';
 import { globSync } from 'tinyglobby';
 
-interface Workspace {
+export interface Workspace {
 	/** The absolute path to the workspace root. */
 	root: string;
-	/** An array of absolute paths to the workspace's packages. */
+	/** An array of absolute paths to each workspace package. */
 	packages: string[];
 }
+
+const PKG_NAMES = ['package.json', 'deno.json'];
 
 /**
  * Resolves the details of the current workspace.
@@ -22,7 +24,7 @@ export function resolve(cwd: string): Workspace | undefined {
 	cwd = path.resolve(cwd); // ensure it's an absolute path.
 
 	// find workspace root
-	let pkgPath = find(cwd, 'package.json');
+	let pkgPath = find(cwd, PKG_NAMES);
 	if (!pkgPath) return;
 
 	let workspace: RawWorkspace | undefined;
@@ -30,7 +32,7 @@ export function resolve(cwd: string): Workspace | undefined {
 		const pkg = readJSON(pkgPath);
 		workspace = findWorkspace(pkgPath, pkg);
 		if (workspace === undefined) {
-			pkgPath = find(path.resolve(pkgPath, '..', '..'), 'package.json');
+			pkgPath = find(path.resolve(pkgPath, '..', '..'), PKG_NAMES);
 		}
 	}
 
@@ -48,8 +50,12 @@ interface RawWorkspace {
 
 function findWorkspace(pkgPath: string, pkg: any): RawWorkspace | undefined {
 	const root = path.resolve(pkgPath, '..');
-	// covers npm, yarn, bun, and deno (partially - doesn't include checking `deno.json`)
+
+	// `package.json` defines workspaces in `pkg.workspaces` (covers npm, yarn, bun, and deno)
 	if (Array.isArray(pkg.workspaces)) return { root, globs: pkg.workspaces };
+
+	// `deno.json` defines workspaces in `pkg.workspace`
+	if (Array.isArray(pkg.workspace)) return { root, globs: pkg.workspace };
 
 	const pnpmWorkspacePath = path.resolve(pkgPath, '..', 'pnpm-workspace.yaml');
 	if (fs.existsSync(pnpmWorkspacePath)) {
@@ -59,7 +65,7 @@ function findWorkspace(pkgPath: string, pkg: any): RawWorkspace | undefined {
 	}
 }
 
-const trailingSlashRegex = /(\\|\/)$/;
+const TRAILING_SLASH_REGEX = /(\\|\/)$/;
 
 function resolveWorkspacePackages(workspace: RawWorkspace) {
 	let packagePaths = globSync(workspace.globs, {
@@ -73,23 +79,25 @@ function resolveWorkspacePackages(workspace: RawWorkspace) {
 		packagePaths = packagePaths.map((p) => p.split('/').join(path.sep));
 	}
 
-	const packages = [];
+	const packages: string[] = [];
 
 	for (const pkgDir of packagePaths) {
-		const pkgPath = path.resolve(pkgDir, 'package.json');
-		if (fs.existsSync(pkgPath)) {
+		const isWorkspacePkg = PKG_NAMES.some((name) => fs.existsSync(path.resolve(pkgDir, name)));
+		if (isWorkspacePkg) {
 			// removes any trailing slashes
-			packages.push(pkgDir.replace(trailingSlashRegex, ''));
+			packages.push(pkgDir.replace(TRAILING_SLASH_REGEX, ''));
 		}
 	}
 
 	return packages;
 }
 
-function find(cwd: string, filename: string): string | undefined {
-	const filepath = path.resolve(cwd, filename);
-	if (fs.existsSync(filepath)) {
-		return filepath;
+function find(cwd: string, filenames: string[]): string | undefined {
+	for (const filename of filenames) {
+		const filepath = path.resolve(cwd, filename);
+		if (fs.existsSync(filepath)) {
+			return filepath;
+		}
 	}
 
 	const next = path.resolve(cwd, '..');
@@ -98,7 +106,7 @@ function find(cwd: string, filename: string): string | undefined {
 		return undefined;
 	}
 
-	return find(next, filename);
+	return find(next, filenames);
 }
 
 function readJSON(path: string) {

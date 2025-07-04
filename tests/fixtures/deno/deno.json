@@ -1,0 +1,5 @@
+{
+	"name": "@tests/workspace-deno",
+	"version": "0.0.1",
+	"workspace": ["packages/*", "direct-ref-pkg", "!packages/ignored-workspace-pkg"]
+}
