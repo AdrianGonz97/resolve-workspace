@@ -45,10 +45,18 @@ const workspace = resolve('path/outside/of/workspace'); // => undefined
 
 ### `resolve(cwd)`
 
-Returns `{ root: string; packages: string[] }` or `undefined` (if `cwd` is not in a workspace)
+Returns `{ root: string; packages: string[] }` or `undefined` (if `cwd` is not within a workspace)
 
 - `root` - the absolute path to the root of the workspace
 - `packages` - the absolute paths to each workspace package
+-
+
+### `findWorkspaceRoot(cwd)`
+
+Returns `{ path: string; globs: string[] }` or `undefined` (if `cwd` is not within a workspace)
+
+- `path` - the absolute path to the root of the workspace
+- `globs` - glob patterns used to determine the packages of the workspace
 
 ## License
 
