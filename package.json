@@ -11,6 +11,10 @@
 	],
 	"license": "MIT",
 	"packageManager": "pnpm@10.12.4",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/AdrianGonz97/resolve-workspace.git"
+	},
 	"scripts": {
 		"dev": "tsdown --watch",
 		"build": "tsdown",
